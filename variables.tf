@@ -2,14 +2,14 @@ variable "api_key" {
   type = string
   description = "API Key Id from Intersight"
 }
-
 variable "secretkeyfile" {
   type = string
   description = "The path to your secretkey for Intersight"
 }
 variable "organization" {
   type = string
-  description = "Organization moid"
+  description = "Organization Name"
+  default = "Default"
 }
 
 variable "vcenter_device_ip_address" {

@@ -4,6 +4,10 @@ data "intersight_kubernetes_version" "iks_1_18" {
     kubernetes_version = "v1.18.12"
 }
 
+data "intersight_organization_organization" "org" {
+    name = var.organization
+}
+
 #Importing the vCenter Target to assign to the Infra Provider
 data "intersight_asset_device_registration" "vsphere" {
     device_ip_address = var.vcenter_device_ip_address
@@ -41,7 +45,7 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-In
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     }
 }
 
@@ -131,7 +135,7 @@ resource "intersight_ippool_pool" "IKS-ippool-amslab"{
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     }
 }
 
@@ -150,7 +154,7 @@ resource "intersight_kubernetes_sys_config_policy" "IKS-Sys-Config-Default" {
   
   organization {
     object_type = "organization.Organization"
-    moid = var.organization
+    moid = data.intersight_organization_organization.org.id
   }
 }
 
@@ -166,7 +170,7 @@ resource "intersight_kubernetes_virtual_machine_instance_type" "IKS-VM-Template-
   }
   organization {
     object_type = "organization.Organization"
-    moid = var.organization
+    moid = data.intersight_organization_organization.org.id
   }
 }
 
@@ -183,7 +187,7 @@ resource "intersight_kubernetes_version_policy" "IKS-version-1_18" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     } 
 }
 
@@ -204,7 +208,7 @@ resource "intersight_kubernetes_network_policy" "IKS-network-policy-cluster1" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     } 
 }
 
@@ -233,7 +237,7 @@ resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     } 
 }
 
@@ -245,7 +249,7 @@ resource "intersight_kubernetes_addon_policy" "IKS-no_addons" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     } 
 }
 
@@ -291,6 +295,6 @@ resource "intersight_kubernetes_cluster_profile" "IKS-test-terraform" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = var.organization
+        moid = data.intersight_organization_organization.org.id
     } 
 }
