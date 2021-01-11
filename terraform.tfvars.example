@@ -1,6 +1,7 @@
 #Intersight Settings
 api_key = "your api key"
 organization = "the moid if your organisation"
+secretkeyfile = "/path/to/your/SecretKey_Intersight.txt"
 
 #vCenter Settings
 vcenter_device_ip_address = [ "10.10.1.4" ]

@@ -3,6 +3,10 @@ variable "api_key" {
   description = "API Key Id from Intersight"
 }
 
+variable "secretkeyfile" {
+  type = string
+  description = "The path to your secretkey for Intersight"
+}
 variable "organization" {
   type = string
   description = "Organization moid"
@@ -106,7 +110,6 @@ variable "timezone" {
   description = "The timezone for the IKS cluster"
   default = "Europe/Amsterdam"
 }
-
 variable "ssh_user" {
   type = string
   description = "The ssh_user for the IKS cluster"
