@@ -2,7 +2,8 @@
 A Terrraform Plan for building an IKS cluster in Intersight
 
 ## Pre-requirements
-Install Terraform
+- Install Terraform
+- Intersight API key
 
 ## Usage
 1. Copy the terraform.tfvars.example file to terraform.tfvars  
