@@ -2,7 +2,7 @@
 A Terrraform Plan for building an IKS cluster in Intersight
 
 ## Pre-requirements
-- Install Terraform
+- Terraform
 - Intersight API key
 
 ## Usage
