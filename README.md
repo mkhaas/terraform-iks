@@ -23,7 +23,7 @@ As I'm not sure I deploy and undeploy manually at the moment.
 
 ## Caveats
 1. Resource pools.  
-At the moment there is a bug that needs you to specify a resourcepool or you will recieve the following error:  
+At the moment there is a bug that needs you to specify a resourcepool in certain situations (multiple clusters or dc's) or you will recieve the following error:  
 `"path 'Resources' resolves to multiple resource pools."`  
 2. Everytime you apply the terraform plan it will reconfigure the password for your Infrastructure Provider.  
 I'm looking for a way around this.  
