@@ -9,10 +9,9 @@ data "intersight_organization_organization" "org" {
 }
 
 #Importing the vCenter Target to assign to the Infra Provider
-data "intersight_asset_device_registration" "vsphere" {
-    device_ip_address = var.vcenter_device_ip_address
-    platform_type = "VmwareVcenter"
-    vendor = "VMware"
+data "intersight_asset_target" "vcenter" {
+    name = var.vcenter_name
+    target_type = "VmwareVcenter"
 }
 
 #Can't use this resource yet because the API spec is incomplete (missing Cluster, Datastore, Passphrase and Resourcepool)
@@ -36,7 +35,7 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-In
 
     target {
         object_type = "asset.DeviceRegistration"
-        moid = data.intersight_asset_device_registration.vsphere.id
+        moid = data.intersight_asset_target.vcenter.registered_device[0].moid
     }
 
     tags { 
@@ -230,7 +229,7 @@ resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime
         protocol = var.proxy_protocol
         is_password_set = false
     }
-        
+    
     tags { 
         key = "Managed_By"
         value = "Terraform"

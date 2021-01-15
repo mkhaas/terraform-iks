@@ -9,12 +9,12 @@ variable "secretkeyfile" {
 variable "organization" {
   type = string
   description = "Organization Name"
-  default = "Default"
+  default = "default"
 }
 
-variable "vcenter_device_ip_address" {
-  type = list(string)
-  description = "The IP address of the vCenter Target you want to provision your IKS cluster to"
+variable "vcenter_name" {
+  type = string
+  description = "The name of your vCenter Target as you see it in Intersight (could be an IP address)"
 }
 
 variable "interfaces" {

@@ -3,7 +3,7 @@ api_key = "your api key"
 secretkeyfile = "/path/to/your/SecretKey_Intersight.txt"
 
 #vCenter Settings
-vcenter_device_ip_address = [ "10.10.1.4" ]
+vcenter_name = "10.10.1.4"
 interfaces = [ "vm-network-99" ]
 Datastore = "DS_EXAMPLE" 
 Cluster = "Example"
