@@ -175,7 +175,17 @@ variable "proxy_protocol" {
   default = "http"
 }
 
+variable "addon_definition_name" {
+  type = string
+  description = "The name of the dashboard addon"
+  default = "kubernetes-dashboard"
+}
 
+variable "addon_upgrade_strategy" {
+  type = string
+  description = "The type of upgrade strategy"
+  default = "NoAction"
+}
 
 
 

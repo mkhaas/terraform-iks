@@ -14,7 +14,10 @@ data "intersight_asset_target" "vcenter" {
     target_type = "VmwareVcenter"
 }
 
-#Can't use this resource yet because the API spec is incomplete (missing Cluster, Datastore, Passphrase and Resourcepool)
+data "intersight_kubernetes_addon_definition" "dashboard_addon_def" {
+    name = var.addon_definition_name
+}
+
 resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-InfraProvider-AMSLAB-All_Flash" {
     name    = "IKS-InfraProvider-AMSLAB-All_Flash"
     infra_config { 
@@ -229,7 +232,7 @@ resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime
         protocol = var.proxy_protocol
         is_password_set = false
     }
-    
+
     tags { 
         key = "Managed_By"
         value = "Terraform"
@@ -240,12 +243,34 @@ resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime
     } 
 }
 
-resource "intersight_kubernetes_addon_policy" "IKS-no_addons" {
-    name = "iks-no_addons"        
+resource "intersight_kubernetes_addon" "dashboard_addon" {
+    name = var.addon_definition_name
+    upgrade_strategy = var.addon_upgrade_strategy
+    addon_definition {
+        moid = data.intersight_kubernetes_addon_definition.dashboard_addon_def.moid
+    }
+        
     tags { 
         key = "Managed_By"
         value = "Terraform"
     }
+    organization {
+        object_type = "organization.Organization"
+        moid = data.intersight_organization_organization.org.id
+    }     
+}
+resource "intersight_kubernetes_addon_policy" "IKS-Dashboard" {
+    name = "IKS-Dashboard"        
+    tags { 
+        key = "Managed_By"
+        value = "Terraform"
+    }
+
+    addons {
+        object_type = "kubernetes.Addon"
+        moid = intersight_kubernetes_addon.dashboard_addon.moid
+    }   
+
     organization {
         object_type = "organization.Organization"
         moid = data.intersight_organization_organization.org.id
@@ -261,11 +286,12 @@ resource "intersight_kubernetes_cluster_profile" "IKS-test-terraform" {
         ssh_keys = var.ssh_keys
         ssh_user = var.ssh_user
     }
+    #action = "Undeploy"
 
     #references
     addons {
         object_type = "kubernetes.AddonPolicy"
-        moid = intersight_kubernetes_addon_policy.IKS-no_addons.id
+        moid = intersight_kubernetes_addon_policy.IKS-Dashboard.id
     }
 
     cluster_ip_pools {
