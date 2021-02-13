@@ -1,6 +1,6 @@
 #Intersight Settings
 api_key = "your api key"
-secretkeyfile = "/path/to/your/SecretKey_Intersight.txt"
+secretkey = "/path/to/your/SecretKey_Intersight.txt" #or you can put your secretkey as a string in here
 
 #vCenter Settings
 vcenter_name = "10.10.1.4"

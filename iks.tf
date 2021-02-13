@@ -75,7 +75,7 @@ resource "intersight_kubernetes_node_group_profile" "iks-master_nodepool-1master
 
     cluster_profile {
       object_type = "kubernetes.ClusterProfile"
-      moid = intersight_kubernetes_cluster_profile.IKS-test-terraform.id
+      moid = intersight_kubernetes_cluster_profile.IKS-k8s-profile.id
     } 
 
     tags { 
@@ -107,7 +107,7 @@ resource "intersight_kubernetes_node_group_profile" "iks-worker_nodepool-2worker
 
     cluster_profile {
       object_type = "kubernetes.ClusterProfile"
-      moid = intersight_kubernetes_cluster_profile.IKS-test-terraform.id
+      moid = intersight_kubernetes_cluster_profile.IKS-k8s-profile.id
     }
 
     tags { 
@@ -277,7 +277,7 @@ resource "intersight_kubernetes_addon_policy" "IKS-Dashboard" {
     } 
 }
 
-resource "intersight_kubernetes_cluster_profile" "IKS-test-terraform" {
+resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
     name = var.iks_cluster_name
     description = "This Kubernetes Cluster profile has been created via Terraform"
     management_config {
@@ -286,7 +286,7 @@ resource "intersight_kubernetes_cluster_profile" "IKS-test-terraform" {
         ssh_keys = var.ssh_keys
         ssh_user = var.ssh_user
     }
-    #action = "Undeploy"
+    #action = "Deploy"
 
     #references
     addons {
