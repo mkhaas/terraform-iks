@@ -1,7 +1,6 @@
 #Importing the Kubernetes Version available
-data "intersight_kubernetes_version" "iks_1_18" {
-  #  name = "IKS-master-94a8577-v1.18.12"
-    kubernetes_version = "v1.18.12"
+data "intersight_kubernetes_version" "iks_1_19" {
+    kubernetes_version = "v1.19.5"
 }
 
 data "intersight_organization_organization" "org" {
@@ -26,7 +25,7 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-In
         additional_properties = jsonencode({
             Datastore = var.Datastore
             Cluster = var.Cluster
-            Passphrase = var.Passphrase
+            Passphrase = var.Passphrase 
             ResourcePool = var.ResourcePool
         })
     }
@@ -38,31 +37,30 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-In
 
     target {
         object_type = "asset.DeviceRegistration"
-        moid = data.intersight_asset_target.vcenter.registered_device[0].moid
+        moid = data.intersight_asset_target.vcenter.results[0].registered_device[0].moid
     }
 
+    node_group  {
+        object_type = "kubernetes.NodeGroupProfile"
+        moid = intersight_kubernetes_node_group_profile.iks-master_nodepool-1master.id
+    }
+
+   node_group  {
+        object_type = "kubernetes.NodeGroupProfile"
+        moid = intersight_kubernetes_node_group_profile.iks-worker_nodepool-2workers.id
+    }
     tags { 
         key = "Managed_By"
         value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
     }
 }
 
 resource "intersight_kubernetes_node_group_profile" "iks-master_nodepool-1master" {
     name = "iks-master_nodepool-1master"
     description = "The Master Node pool with just 1 master "
-    node_type = "Master"
+    node_type = "ControlPlane"
     desiredsize = var.master_desiredsize
-
-    #references
-    infra_provider {
-        object_type = "kubernetes.VirtualMachineInfrastructureProvider"
-        moid = intersight_kubernetes_virtual_machine_infrastructure_provider.IKS-InfraProvider-AMSLAB-All_Flash.id
-    }
-
+    maxsize = 3
     ip_pools {
         object_type = "ippool.Pool"
         moid = intersight_ippool_pool.IKS-ippool-amslab.id
@@ -70,7 +68,7 @@ resource "intersight_kubernetes_node_group_profile" "iks-master_nodepool-1master
 
     kubernetes_version {
         object_type = "kubernetes.VersionPolicy"
-        moid = intersight_kubernetes_version_policy.IKS-version-1_18.id
+        moid = intersight_kubernetes_version_policy.IKS-current-version.id
     }
 
     cluster_profile {
@@ -88,13 +86,8 @@ resource "intersight_kubernetes_node_group_profile" "iks-worker_nodepool-2worker
     name = "iks-worker_nodepool-2workers"
     description = "The Worker Nodepool with 2 Workers "
     node_type = "Worker"
-    desiredsize = var.worker_desiredsize
-
-    infra_provider {
-        object_type = "kubernetes.VirtualMachineInfrastructureProvider"
-        moid = intersight_kubernetes_virtual_machine_infrastructure_provider.IKS-InfraProvider-AMSLAB-All_Flash.id
-    }
-
+    desiredsize = var.worker_desiredsize   
+    maxsize = 50     
     ip_pools {
         object_type = "ippool.Pool"
         moid = intersight_ippool_pool.IKS-ippool-amslab.id
@@ -102,7 +95,7 @@ resource "intersight_kubernetes_node_group_profile" "iks-worker_nodepool-2worker
 
     kubernetes_version {
         object_type = "kubernetes.VersionPolicy"
-        moid = intersight_kubernetes_version_policy.IKS-version-1_18.id
+        moid = intersight_kubernetes_version_policy.IKS-current-version.id
     }
 
     cluster_profile {
@@ -137,7 +130,7 @@ resource "intersight_ippool_pool" "IKS-ippool-amslab"{
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     }
 }
 
@@ -156,7 +149,7 @@ resource "intersight_kubernetes_sys_config_policy" "IKS-Sys-Config-Default" {
   
   organization {
     object_type = "organization.Organization"
-    moid = data.intersight_organization_organization.org.id
+    moid = data.intersight_organization_organization.org.results[0].moid
   }
 }
 
@@ -172,15 +165,15 @@ resource "intersight_kubernetes_virtual_machine_instance_type" "IKS-VM-Template-
   }
   organization {
     object_type = "organization.Organization"
-    moid = data.intersight_organization_organization.org.id
+    moid = data.intersight_organization_organization.org.results[0].moid
   }
 }
 
-resource "intersight_kubernetes_version_policy" "IKS-version-1_18" {
-    name = "IKS-version-1_18"
+resource "intersight_kubernetes_version_policy" "IKS-current-version" {
+    name = "IKS-version-1_19"
     nr_version {
         object_type =  "kubernetes.Version"
-        moid = data.intersight_kubernetes_version.iks_1_18.id
+        moid = data.intersight_kubernetes_version.iks_1_19.results[0].moid
     }
 
     tags { 
@@ -189,7 +182,7 @@ resource "intersight_kubernetes_version_policy" "IKS-version-1_18" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     } 
 }
 
@@ -210,7 +203,7 @@ resource "intersight_kubernetes_network_policy" "IKS-network-policy-cluster1" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     } 
 }
 
@@ -239,15 +232,18 @@ resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     } 
 }
+
+/*
+# Removed the Addon configuration because this has changed significantly in the latest version of IKS
 
 resource "intersight_kubernetes_addon" "dashboard_addon" {
     name = var.addon_definition_name
     upgrade_strategy = var.addon_upgrade_strategy
     addon_definition {
-        moid = data.intersight_kubernetes_addon_definition.dashboard_addon_def.moid
+        moid = data.intersight_kubernetes_addon_definition.dashboard_addon_def.results[0].moid
     }
         
     tags { 
@@ -256,7 +252,7 @@ resource "intersight_kubernetes_addon" "dashboard_addon" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     }     
 }
 resource "intersight_kubernetes_addon_policy" "IKS-Dashboard" {
@@ -273,10 +269,11 @@ resource "intersight_kubernetes_addon_policy" "IKS-Dashboard" {
 
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     } 
 }
 
+*/
 resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
     name = var.iks_cluster_name
     description = "This Kubernetes Cluster profile has been created via Terraform"
@@ -287,13 +284,15 @@ resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
         ssh_user = var.ssh_user
     }
     #action = "Deploy"
+    wait_for_completion=false
 
     #references
+    /* Removed because of significant changes in IKS
     addons {
         object_type = "kubernetes.AddonPolicy"
         moid = intersight_kubernetes_addon_policy.IKS-Dashboard.id
     }
-
+*/
     cluster_ip_pools {
         object_type = "ippool.Pool"
         moid = intersight_ippool_pool.IKS-ippool-amslab.id
@@ -320,6 +319,6 @@ resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
     }
     organization {
         object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.id
+        moid = data.intersight_organization_organization.org.results[0].moid
     } 
 }
