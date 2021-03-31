@@ -1,31 +1,7 @@
 #Intersight Settings
-api_key = "your api key"
-secretkey = "/path/to/your/SecretKey_Intersight.txt" #or you can put your secretkey as a string in here
+api_key = "API KEY"
+secretkey = "SECRET KEY"
 
-#vCenter Settings
-vcenter_name = "10.10.1.4"
-interfaces = [ "vm-network-99" ]
-Datastore = "DS_EXAMPLE" 
-Cluster = "Example"
-Passphrase = "Cisco123"
-
-#It is required to create a resourcepool and use it at the moment due to a bug
-ResourcePool = "RP-Example"
-
-#IP Pool settings
-ippool_from = "10.10.10.100"
-ippool_size = 20
-ippool_gateway = "10.10.10.1"
-ippool_netmask = "255.255.255.0"
-ippool_primary_dns = "10.10.1.5"
-ippool_secondary_dns = "10.10.1.6"
-
-#K8s Cluster Settings 
-iks_cluster_name = "IKS-cluster-by-tf"
-dns_domain_name = "dnsname.local"
-dns_servers = [
-    "10.10.1.5",
-    "10.10.1.6"
-]
-ssh_keys = [ 
-]
+ssh_keys = [ "ssh-ed25519 key user@host" ]
+vcenter_name = "ipadres or hostname of vcenter target"
+Passphrase = "password of vcenter"

@@ -1,24 +1,75 @@
-#Importing the Kubernetes Version available
-data "intersight_kubernetes_version" "iks_1_19" {
-    kubernetes_version = "v1.19.5"
-}
-
 data "intersight_organization_organization" "org" {
     name = var.organization
 }
 
-#Importing the vCenter Target to assign to the Infra Provider
 data "intersight_asset_target" "vcenter" {
     name = var.vcenter_name
     target_type = "VmwareVcenter"
 }
 
-data "intersight_kubernetes_addon_definition" "dashboard_addon_def" {
-    name = var.addon_definition_name
+data "intersight_ippool_pool" "ippool" {
+    name = var.ippool
 }
 
-resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-InfraProvider-AMSLAB-All_Flash" {
-    name    = "IKS-InfraProvider-AMSLAB-All_Flash"
+data "intersight_kubernetes_sys_config_policy" "sys_config" {
+    name = var.sysconfig
+}
+
+data "intersight_kubernetes_virtual_machine_instance_type" "vm_type" {
+    name = var.vmtype
+}
+
+data "intersight_kubernetes_network_policy" "network_policy" {
+    name = var.networkpolicy
+}
+
+data "intersight_kubernetes_version_policy" "version_policy" {
+    name = var.version_policy
+}
+
+data "intersight_kubernetes_virtual_machine_infra_config_policy" "infra_config_policy" {
+    name = var.infra_config_policy
+}
+
+resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "infra_provider-control" {
+    name    = var.infraprovider
+    infra_config { 
+        object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
+        interfaces = var.interfaces
+        additional_properties = jsonencode({
+            Datastore = var.Datastore
+            Cluster = var.Cluster
+            Passphrase = var.Passphrase 
+            ResourcePool = var.ResourcePool
+        })
+    }  
+    infra_config_policy {
+      moid = data.intersight_kubernetes_virtual_machine_infra_config_policy.infra_config_policy.results[0].moid
+      object_type = "kubernetes.VirtualMachineInfraConfigPolicy"
+    } 
+    instance_type {
+        object_type = "kubernetes.VirtualMachineInstanceType"
+        moid = data.intersight_kubernetes_virtual_machine_instance_type.vm_type.results[0].moid
+    }
+
+    target {
+        object_type = "asset.DeviceRegistration"
+        moid = data.intersight_asset_target.vcenter.results[0].registered_device[0].moid
+    }
+
+    node_group {
+        object_type = "kubernetes.NodeGroupProfile"
+        moid = intersight_kubernetes_node_group_profile.iks-master_nodepool-1master.id
+    }
+
+    tags { 
+        key = "Managed_By"
+        value = "Terraform"
+    }
+}
+
+resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "infra_provider-worker" {
+    name    = var.infraprovider
     infra_config { 
         object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
         interfaces = var.interfaces
@@ -29,31 +80,31 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "IKS-In
             ResourcePool = var.ResourcePool
         })
     }
-
     instance_type {
         object_type = "kubernetes.VirtualMachineInstanceType"
-        moid = intersight_kubernetes_virtual_machine_instance_type.IKS-VM-Template-default.id
+        moid = data.intersight_kubernetes_virtual_machine_instance_type.vm_type.results[0].moid
     }
 
+   infra_config_policy {
+      moid = data.intersight_kubernetes_virtual_machine_infra_config_policy.infra_config_policy.results[0].moid
+      object_type = "kubernetes.VirtualMachineInfraConfigPolicy"
+    } 
     target {
         object_type = "asset.DeviceRegistration"
         moid = data.intersight_asset_target.vcenter.results[0].registered_device[0].moid
     }
 
-    node_group  {
+    node_group {
         object_type = "kubernetes.NodeGroupProfile"
         moid = intersight_kubernetes_node_group_profile.iks-master_nodepool-1master.id
     }
 
-   node_group  {
-        object_type = "kubernetes.NodeGroupProfile"
-        moid = intersight_kubernetes_node_group_profile.iks-worker_nodepool-2workers.id
-    }
     tags { 
         key = "Managed_By"
         value = "Terraform"
     }
 }
+
 
 resource "intersight_kubernetes_node_group_profile" "iks-master_nodepool-1master" {
     name = "iks-master_nodepool-1master"
@@ -63,12 +114,12 @@ resource "intersight_kubernetes_node_group_profile" "iks-master_nodepool-1master
     maxsize = 3
     ip_pools {
         object_type = "ippool.Pool"
-        moid = intersight_ippool_pool.IKS-ippool-amslab.id
+        moid = data.intersight_ippool_pool.ippool.results[0].moid
     }
 
     kubernetes_version {
         object_type = "kubernetes.VersionPolicy"
-        moid = intersight_kubernetes_version_policy.IKS-current-version.id
+        moid = data.intersight_kubernetes_version_policy.version_policy.results[0].moid
     }
 
     cluster_profile {
@@ -87,21 +138,22 @@ resource "intersight_kubernetes_node_group_profile" "iks-worker_nodepool-2worker
     description = "The Worker Nodepool with 2 Workers "
     node_type = "Worker"
     desiredsize = var.worker_desiredsize   
-    maxsize = 50     
+    maxsize = 50         
+    
     ip_pools {
         object_type = "ippool.Pool"
-        moid = intersight_ippool_pool.IKS-ippool-amslab.id
+        moid = data.intersight_ippool_pool.ippool.results[0].moid
     }
 
     kubernetes_version {
         object_type = "kubernetes.VersionPolicy"
-        moid = intersight_kubernetes_version_policy.IKS-current-version.id
+        moid = data.intersight_kubernetes_version_policy.version_policy.results[0].moid
     }
 
     cluster_profile {
       object_type = "kubernetes.ClusterProfile"
       moid = intersight_kubernetes_cluster_profile.IKS-k8s-profile.id
-    }
+    } 
 
     tags { 
         key = "Managed_By"
@@ -109,171 +161,6 @@ resource "intersight_kubernetes_node_group_profile" "iks-worker_nodepool-2worker
     }
 }
 
-resource "intersight_ippool_pool" "IKS-ippool-amslab"{
-    name = "IKS-ippool-amslab"
-    description = "The IP Pool used for Kubernetes deployments"
-    ip_v4_blocks {
-        object_type = "ippool.IpV4Block"
-        from = var.ippool_from
-        size = var.ippool_size
-    } 
-    ip_v4_config {
-        object_type = "ippool.IpV4Config"
-        gateway = var.ippool_gateway
-        netmask = var.ippool_netmask
-        primary_dns = var.ippool_primary_dns
-        secondary_dns = var.ippool_secondary_dns
-    }
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    }
-}
-
-resource "intersight_kubernetes_sys_config_policy" "IKS-Sys-Config-Default" {
-  name = "IKS-Sys-Config-Default"
-  description = "The default NTP and DNS settings for AMSLAB"
-  dns_domain_name = var.dns_domain_name
-  dns_servers = var.dns_servers
-  ntp_servers = var.ntp_servers
-  timezone = var.timezone
-
-  tags { 
-    key = "Managed_By"
-    value = "Terraform"
-  }
-  
-  organization {
-    object_type = "organization.Organization"
-    moid = data.intersight_organization_organization.org.results[0].moid
-  }
-}
-
-resource "intersight_kubernetes_virtual_machine_instance_type" "IKS-VM-Template-default" {
-  name = "IKS-VM-Template-default"
-  description = "The default VM specs to use whole deploying an Kubernetes Cluster"
-  cpu = var.cpu
-  disk_size = var.disk_size
-  memory = var.memory
-  tags { 
-    key = "Managed_By"
-    value = "Terraform"
-  }
-  organization {
-    object_type = "organization.Organization"
-    moid = data.intersight_organization_organization.org.results[0].moid
-  }
-}
-
-resource "intersight_kubernetes_version_policy" "IKS-current-version" {
-    name = "IKS-version-1_19"
-    nr_version {
-        object_type =  "kubernetes.Version"
-        moid = data.intersight_kubernetes_version.iks_1_19.results[0].moid
-    }
-
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    } 
-}
-
-resource "intersight_kubernetes_network_policy" "IKS-network-policy-cluster1" {
-    name = "IKS-network-policy-cluster1"
-    description = "The network Policy for the cluster "
-    # cni_config {
-    #     object_type = ""
-    #     nr_version = ""
-    # }
-    #cni_type = "calico" # Supported CNI type. Currently we only support Calico.\n* `Calico` - Calico CNI plugin as described in https://github.com/projectcalico/cni-plugin.\n* `Aci` - Cisco ACI Container Network Interface plugin.",
-    pod_network_cidr = var.pod_network_cidr
-    service_cidr = var.service_cidr
-    
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    } 
-}
-
-resource "intersight_kubernetes_container_runtime_policy" "IKS-container-runtime_with_proxy" {
-    name = "IKS-container-runtime_with_proxy"
-    description = "This policy configures the Proxy setting for your container runtime so you can get container images from the internet"
-    
-    docker_http_proxy {
-        object_type = "kubernetes.ProxyConfig"
-        hostname = var.proxy_hostname
-        port = var.proxy_port
-        protocol = var.proxy_protocol
-        is_password_set = false
-    }
-    docker_https_proxy {
-        object_type = "kubernetes.ProxyConfig"
-        hostname = var.proxy_hostname
-        port = var.proxy_port
-        protocol = var.proxy_protocol
-        is_password_set = false
-    }
-
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    } 
-}
-
-/*
-# Removed the Addon configuration because this has changed significantly in the latest version of IKS
-
-resource "intersight_kubernetes_addon" "dashboard_addon" {
-    name = var.addon_definition_name
-    upgrade_strategy = var.addon_upgrade_strategy
-    addon_definition {
-        moid = data.intersight_kubernetes_addon_definition.dashboard_addon_def.results[0].moid
-    }
-        
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    }     
-}
-resource "intersight_kubernetes_addon_policy" "IKS-Dashboard" {
-    name = "IKS-Dashboard"        
-    tags { 
-        key = "Managed_By"
-        value = "Terraform"
-    }
-
-    addons {
-        object_type = "kubernetes.Addon"
-        moid = intersight_kubernetes_addon.dashboard_addon.moid
-    }   
-
-    organization {
-        object_type = "organization.Organization"
-        moid = data.intersight_organization_organization.org.results[0].moid
-    } 
-}
-
-*/
 resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
     name = var.iks_cluster_name
     description = "This Kubernetes Cluster profile has been created via Terraform"
@@ -286,31 +173,19 @@ resource "intersight_kubernetes_cluster_profile" "IKS-k8s-profile" {
     #action = "Deploy"
     wait_for_completion=false
 
-    #references
-    /* Removed because of significant changes in IKS
-    addons {
-        object_type = "kubernetes.AddonPolicy"
-        moid = intersight_kubernetes_addon_policy.IKS-Dashboard.id
-    }
-*/
     cluster_ip_pools {
         object_type = "ippool.Pool"
-        moid = intersight_ippool_pool.IKS-ippool-amslab.id
-    }
-
-    container_runtime_config { 
-        object_type = "kubernetes.ContainerRuntimePolicy"
-        moid = intersight_kubernetes_container_runtime_policy.IKS-container-runtime_with_proxy.id
+        moid = data.intersight_ippool_pool.ippool.results[0].moid
     }
 
     net_config {
         object_type = "kubernetes.NetworkPolicy"
-        moid = intersight_kubernetes_network_policy.IKS-network-policy-cluster1.id
+        moid = data.intersight_kubernetes_network_policy.network_policy.results[0].moid
     }
 
     sys_config {
         object_type = "kubernetes.SysConfigPolicy"
-        moid = intersight_kubernetes_sys_config_policy.IKS-Sys-Config-Default.id
+        moid = data.intersight_kubernetes_sys_config_policy.sys_config.results[0].moid
     }
 
     tags { 
