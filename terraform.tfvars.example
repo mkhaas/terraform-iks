@@ -28,5 +28,4 @@ dns_servers = [
     "10.10.1.6"
 ]
 ssh_keys = [ 
-    "ssh-ed25519 yourpublickeyinthisformat requiredtrash" 
 ]
