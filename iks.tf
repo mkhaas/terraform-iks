@@ -32,17 +32,17 @@ data "intersight_kubernetes_virtual_machine_infra_config_policy" "infra_config_p
 }
 
 resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "infra_provider-control" {
-    name    = var.infraprovider
-    infra_config { 
-        object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
-        interfaces = var.interfaces
-        additional_properties = jsonencode({
-            Datastore = var.Datastore
-            Cluster = var.Cluster
-            Passphrase = var.Passphrase 
-            ResourcePool = var.ResourcePool
-        })
-    }  
+    name    = "${var.iks_cluster_name}-controlplane"
+    # infra_config { 
+    #     object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
+    #     interfaces = var.interfaces
+    #     additional_properties = jsonencode({
+    #         Datastore = var.Datastore
+    #         Cluster = var.Cluster
+    #         Passphrase = var.Passphrase 
+    #         ResourcePool = var.ResourcePool
+    #     })
+    # }  
     infra_config_policy {
       moid = data.intersight_kubernetes_virtual_machine_infra_config_policy.infra_config_policy.results[0].moid
       object_type = "kubernetes.VirtualMachineInfraConfigPolicy"
@@ -69,17 +69,17 @@ resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "infra_
 }
 
 resource "intersight_kubernetes_virtual_machine_infrastructure_provider" "infra_provider-worker" {
-    name    = var.infraprovider
-    infra_config { 
-        object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
-        interfaces = var.interfaces
-        additional_properties = jsonencode({
-            Datastore = var.Datastore
-            Cluster = var.Cluster
-            Passphrase = var.Passphrase 
-            ResourcePool = var.ResourcePool
-        })
-    }
+    name    = "${var.iks_cluster_name}-workers"
+    # infra_config { 
+    #     object_type = "kubernetes.EsxiVirtualMachineInfraConfig"
+    #     interfaces = var.interfaces
+    #     additional_properties = jsonencode({
+    #         Datastore = var.Datastore
+    #         Cluster = var.Cluster
+    #         Passphrase = var.Passphrase 
+    #         ResourcePool = var.ResourcePool
+    #     })
+    # }
     instance_type {
         object_type = "kubernetes.VirtualMachineInstanceType"
         moid = data.intersight_kubernetes_virtual_machine_instance_type.vm_type.results[0].moid

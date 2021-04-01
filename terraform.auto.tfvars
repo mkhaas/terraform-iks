@@ -7,10 +7,4 @@ version_policy = "IKS-version-1_19"
 infra_config_policy = "NVME-Cluster"
 
 #create these policies
-iks_cluster_name = "meenakshi-tf-cluster"
-
-infraprovider = "NVME-Cluster-2"
-interfaces   = [ "vlan99-99" ]
-Datastore    = "HX-NVME" 
-Cluster      = "HX-NVME"
-ResourcePool = ""
+iks_cluster_name = "boris-tf-cluster"
