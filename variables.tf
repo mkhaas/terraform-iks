@@ -64,7 +64,7 @@ variable "ssh_keys" {
 variable "load_balancer_count" {
   type = number
   description = "The number of loadbalancers for the IKS cluster"
-  default = 1
+  default = 3
 }
 
 variable "vcenter_name" {
